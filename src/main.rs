@@ -158,24 +158,22 @@ where
     loop {
         let clk_state = clk_pin.is_high().unwrap();
 
-        if clk_state != last_clk_state {
-            if clk_pin.is_low().unwrap() {
-                // Read the delay from shared memory
-                let mut current_delay = SHARED_DELAY.load(Ordering::Relaxed);
+        if clk_state != last_clk_state && clk_pin.is_low().unwrap() {
+            // Read the delay from shared memory
+            let mut current_delay = SHARED_DELAY.load(Ordering::Relaxed);
 
-                if dt_pin.is_high().unwrap() != clk_state {
-                    // Add 50ms, but don't go over 2000
-                    current_delay = (current_delay + 50).min(2000);
-                    info!("Core 1: Clockwise! Delay: {}", current_delay);
-                } else {
-                    // Subtract 50ms, but don't go under 50
-                    current_delay = (current_delay - 50).max(50);
-                    info!("Core 1: Counter-Clockwise! Delay: {}", current_delay);
-                }
-
-                // Write the new delay back to shared memory
-                SHARED_DELAY.store(current_delay, Ordering::Relaxed);
+            if dt_pin.is_high().unwrap() != clk_state {
+                // Add 50ms, but don't go over 2000
+                current_delay = (current_delay + 50).min(2000);
+                info!("Core 1: Clockwise! Delay: {}", current_delay);
+            } else {
+                // Subtract 50ms, but don't go under 50
+                current_delay = (current_delay - 50).max(50);
+                info!("Core 1: Counter-Clockwise! Delay: {}", current_delay);
             }
+
+            // Write the new delay back to shared memory
+            SHARED_DELAY.store(current_delay, Ordering::Relaxed);
         }
 
         last_clk_state = clk_state;
